@@ -1,0 +1,9 @@
+package ssc.model
+
+class SoftwareSupplyChain {
+	
+}
+
+class Maillon{
+	
+}
