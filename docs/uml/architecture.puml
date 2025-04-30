@@ -1,0 +1,95 @@
+@startuml
+class SoftwareSupplyChain {
+  - name: String
+  - description: String
+  + getTopology() : List<Maillon>
+}
+
+class Maillon {
+  - id: String
+  - type: String <développement, build, test, déploiement...>
+  - description: String
+  + dependsOn(): List<Maillon>  
+
+class SourceCodeRepository {
+  - url: String
+  - type: String <Git, SVN>
+  - commitHash: String
+  - lastModifiedDate: Date 
+}
+
+class Author {
+  - name: String
+  - email: String
+  - username: String
+}
+
+class BuildTool {
+  - name: String
+  - version: String
+  + build(): Artifact
+}
+
+class Artifact {
+  - name: String
+  - url: String
+  - type: String <Docker, JAR, EXE>
+  - checksum: String
+}
+
+class DistributionChannel {
+  - type: String <AppStore, PackageManager>
+}
+
+class DeploymentTarget {
+  - environment: String <Cloud, OnPrem, Edge>
+}
+
+class Vulnerability {
+  - scanDate: Date
+  - status: String
+  - CVE-ID: String
+  - severity: String
+  - description: String
+  + scan(Component): Vulnerability
+}
+
+class SBOM {
+  - author: String
+  - timestamp: Date
+  - format: String  < SPDX, CycloneDX>
+  + generateSBOM(): Document
+}
+
+class Component {
+  - name: String
+  - version: String
+  - license: String
+  - type: String
+}
+
+class Dependency {
+  - scope: String <runtime/build/test>
+}
+
+SoftwareSupplyChain "1" *-- "1..*" Maillon : contient
+
+Maillon "1" *-- "1..*" SourceCodeRepository
+Maillon "1" *-- "1..*" BuildTool
+Maillon "1" *-- "1..*" Artifact
+Maillon "1" *-- "0..*" Vulnerability
+Maillon "1" *-- "0..*" SBOM : generates 
+Maillon "1" *-- "0..*" DistributionChannel : uses
+
+SBOM "1" o-- "1..*" Component
+Component "1" *-- "0..*" Dependency
+Artifact "1" --> "1..*" DeploymentTarget
+BuildTool "1" --> "1..*" Artifact : produit
+Component "1" --> "0..*" Vulnerability : affectedBy
+
+SourceCodeRepository "1" o-- "0..*" Author : contributors
+
+Artifact "1" *-- "0..*" Version : hasVersions
+Artifact "1" *-- "0..*" Dependency : dependsOn
+Maillon "1" *-- "0..*" Maillon : dependsOn
+@enduml

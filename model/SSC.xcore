@@ -1,9 +1,167 @@
 package ssc.model
 
-class SoftwareSupplyChain {
-	
+enum SBOMFormat {
+	SPDX,
+	CYCLONEDX
 }
 
-class Maillon{
+enum BuildToolType {
+	Maven,
+	Gradel,
+	Make
+}
+
+enum ArtifactType {
+	Docker,
+	Executable,
+	Container,
+	JAR
+}
+
+enum MaillonType {
+	Development,
+	Build,
+	Test,
+	Deployment
+}
+
+enum RepositoryType {
+	Git,
+	Bitbucket,
+	OneDev,
+	Gogs
+}
+
+enum ComponentType {
+	Library,
+	Application,
+  	Framework,
+  	Container,
+  	Operating_system,
+  	Service,
+  	File
+}
+
+class SoftwareSupplyChain {
+	String name
+	String description
 	
+	contains Maillon[*] maillons opposite softwareSupplyChain
+	
+	op Maillon[*] getTopologgy(){
+		return maillons
+	}
+}
+
+class Maillon {
+	String maillon_id
+	MaillonType maillon_type
+	String description
+	
+	container SoftwareSupplyChain softwareSupplyChain opposite maillons
+	
+	contains SourceCodeRepository[*] repos opposite repo_maillon
+	contains Artifact[*] artifact opposite artifact_maillon
+	contains BuildTool[*] buildTool opposite build_maillon
+	contains DistributionChannel[*] uses opposite distr_channel
+	contains Vulnerability[*] vulnerabilities opposite maillon_vulnerability
+	contains SBOM[*] generates opposite sbom_maillon
+}
+
+class DistributionChannel {
+	String channel_type
+	
+	container Maillon distr_channel opposite uses
+}
+
+class SourceCodeRepository {
+	String url
+	RepositoryType repo_type
+	String commit_hash
+	Date last_modif_date
+	
+	refers Author[] contributors opposite sourceCodeRepository
+	
+	container Maillon repo_maillon opposite repos
+}
+
+class Author {
+	String name
+	String email
+	String username
+	
+	refers SourceCodeRepository sourceCodeRepository opposite contributors
+}
+
+class Version {
+	String identifier
+	
+	container Artifact artifact opposite hasVersions
+}
+
+class Artifact {
+	ArtifactType name
+	String url
+	ArtifactType artifact_type
+	String checksum
+	
+	contains Version[*] hasVersions opposite artifact
+	contains DeploymentTarget[*] deployments opposite deployment_target
+	contains Dependency dependsOn opposite dependency
+	
+	container Maillon artifact_maillon opposite artifact
+	container BuildTool artifact_produit opposite produit
+}
+
+class DeploymentTarget {
+	String environment
+	
+	container Artifact deployment_target opposite deployments
+}
+
+class Dependency {
+	String scope
+	
+	container Artifact dependency opposite dependsOn
+}
+
+class BuildTool {
+	BuildToolType name
+	String version
+	
+	contains Artifact[*] produit opposite artifact_produit
+	
+	container Maillon build_maillon opposite buildTool
+}
+
+class Vulnerability {
+	Date scanDate
+	String status
+	String CVE_ID
+	String severity
+	String description
+	
+	container Maillon maillon_vulnerability opposite vulnerabilities
+	container Component component_vulnerabilities opposite affected_by
+}
+
+class Component {
+	String name
+	String version
+	String license 
+	ComponentType component_type
+	
+	contains Vulnerability[*] affected_by opposite component_vulnerabilities
+	
+	refers SBOM sbom_components opposite components 
+}
+
+class SBOM {
+	String author
+	Date timestamp
+	SBOMFormat format
+	
+	refers Component[*] components opposite sbom_components
+	
+	container Maillon sbom_maillon opposite generates
 }
