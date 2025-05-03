@@ -1,0 +1,25 @@
+stages:
+  - build
+  - import
+
+build:
+  stage: build
+  image: maven:3.9-jdk17
+  script:
+    - mvn clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+
+import-supplychain:
+  stage: import
+  image: maven:3.9-jdk17
+  script:
+    # Compiler le code EMF et tes adaptateurs
+    - mvn compile
+    # Lancer ton importer (génère supplychain.xmi)
+    - mvn exec:java -q
+  artifacts:
+    when: always
+    paths:
+      - supplychain.xmi

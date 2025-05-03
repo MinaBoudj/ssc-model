@@ -107,7 +107,7 @@ class Artifact {
 	
 	contains Version[*] hasVersions opposite artifact
 	contains DeploymentTarget[*] deployments opposite deployment_target
-	contains Dependency dependsOn opposite dependency
+	contains Dependency[*] dependsOn opposite dependency
 	
 	container Maillon artifact_maillon opposite artifact
 	container BuildTool artifact_produit opposite produit
@@ -123,6 +123,7 @@ class Dependency {
 	String scope
 	
 	container Artifact dependency opposite dependsOn
+	refers Component targetComponent opposite depT
 }
 
 class BuildTool {
@@ -154,6 +155,7 @@ class Component {
 	contains Vulnerability[*] affected_by opposite component_vulnerabilities
 	
 	refers SBOM sbom_components opposite components 
+	refers Dependency depT opposite targetComponent
 }
 
 class SBOM {
